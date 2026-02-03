@@ -4,6 +4,8 @@ const session = require('express-session')
 const customer_routes = require('./router/auth_users.js').authenticated;
 const genl_routes = require('./router/general.js').general;
 
+const PORT = 5000;
+
 const SESSION_SECRET = "aVerySecretKeyThatWouldBeStoredInGitHubSecrets";
 const JWT_SECRET = "anotherVerySecretKeyThatWouldBeStoredInGitHubSecrets";
 
@@ -28,8 +30,6 @@ app.use("/customer/auth/*", function auth(req, res, next) {
     return res.status(403).json({ message: "Unauthorized" });
   }
 });
-
-const PORT = 5000;
 
 app.use("/customer", customer_routes);
 app.use("/", genl_routes);
