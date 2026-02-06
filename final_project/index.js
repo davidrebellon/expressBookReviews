@@ -16,18 +16,22 @@ app.use(express.json());
 app.use("/customer", session({ secret: SESSION_SECRET, resave: true, saveUninitialized: true }))
 
 app.use("/customer/auth/*", function auth(req, res, next) {
-  //Write the authenication mechanism here
-  if (req?.session?.authorization['accessToken']) {
-    jwt.verify(req.session.authorization['accessToken'], JWT_SECRET, (err, user) => {
-      if (!err) {
-        req.user = user;
-        next();
-      } else {
-        return res.status(403).json({ message: "User not authenticated" });
-      }
-    });
-  } else {
-    return res.status(403).json({ message: "Unauthorized" });
+  try {
+    //Write the authenication mechanism here
+    if (req?.session?.authorization['accessToken']) {
+      jwt.verify(req.session.authorization['accessToken'], JWT_SECRET, (err, user) => {
+        if (!err) {
+          req.user = user;
+          next();
+        } else {
+          return res.status(403).json({ message: "User not authenticated" });
+        }
+      });
+    } else {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+  } catch (err) {
+    return res.status(500).json({ message: "Internal Server Error while authenticating user. Try logging in again." });
   }
 });
 
