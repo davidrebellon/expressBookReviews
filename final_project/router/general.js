@@ -4,6 +4,13 @@ let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
+const parsedBooks = new Promise((resolve, reject) => {
+  try {
+    resolve(JSON.parse(JSON.stringify(books)));
+  } catch (err) {
+    reject(err);
+  }
+});
 
 public_users.post("/register", (req, res) => {
   try {
@@ -24,9 +31,14 @@ public_users.post("/register", (req, res) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/', function (req, res) {
+public_users.get('/', async function (req, res) {
   try {
-    return res.status(200).json(JSON.stringify(books, null, 2));
+    parsedBooks.then(books => {
+      return res.status(200).json(JSON.stringify(books, null, 2));
+    }).catch(err => {
+      console.error("Error parsing books:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+    });
   } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
@@ -36,15 +48,20 @@ public_users.get('/', function (req, res) {
 public_users.get('/isbn/:isbn', function (req, res) {
   try {
     const isbn = req.params?.isbn;
-    if (!isbn) {
-      // no ISBN provided
-      return res.status(400).json({ message: "ISBN parameter is required" });
-    } else if (books[isbn]) {
-      // ISBN found among books
-      return res.status(200).json(JSON.stringify(books[isbn], null, 2));
-    } else {
-      return res.status(404).json({ message: "Book not found" });
-    }
+    parsedBooks.then(books => {
+      if (!isbn) {
+        // no ISBN provided
+        return res.status(400).json({ message: "ISBN parameter is required" });
+      } else if (books[isbn]) {
+        // ISBN found among books
+        return res.status(200).json(JSON.stringify(books[isbn], null, 2));
+      } else {
+        return res.status(404).json({ message: "Book not found" });
+      }
+    }).catch(err => {
+      console.error("Error parsing books:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+    });
   } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
@@ -55,25 +72,30 @@ public_users.get('/author/:author', function (req, res) {
   try {
     const author = req.params?.author;
     console.log("Author requested:", author);
-    if (!author) {
-      // no author provided
-      return res.status(400).json({ message: "Author parameter is required" });
-    } else {
-      // search for books by the given author
-      const results = [];
-      for (const [isbn, book] of Object.entries(books)) {
-        console.log(book.author, author);
-        if (book.author.toLowerCase() === author.toLowerCase()) {
-          results.push({ isbn, ...book });
+    parsedBooks.then(books => {
+      if (!author) {
+        // no author provided
+        return res.status(400).json({ message: "Author parameter is required" });
+      } else {
+        // search for books by the given author
+        const results = [];
+        for (const [isbn, book] of Object.entries(books)) {
+          console.log(book.author, author);
+          if (book.author.toLowerCase() === author.toLowerCase()) {
+            results.push({ isbn, ...book });
+          }
+        }
+        console.log(results);
+        if (results.length > 0) {
+          return res.status(200).json(JSON.stringify(results, null, 2));
+        } else {
+          return res.status(404).json({ message: "No books found by the specified author" });
         }
       }
-      console.log(results);
-      if (results.length > 0) {
-        return res.status(200).json(JSON.stringify(results, null, 2));
-      } else {
-        return res.status(404).json({ message: "No books found by the specified author" });
-      }
-    }
+    }).catch(err => {
+      console.error("Error parsing books:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+    });
   } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
@@ -84,25 +106,30 @@ public_users.get('/title/:title', function (req, res) {
   try {
     const title = req.params?.title;
     console.log("Title requested:", title);
-    if (!title) {
-      // no title provided
-      return res.status(400).json({ message: "Title parameter is required" });
-    } else {
-      // search for books by the given title
-      const results = [];
-      for (const [isbn, book] of Object.entries(books)) {
-        console.log(book.title, title);
-        if (book.title.toLowerCase() === title.toLowerCase()) {
-          results.push({ isbn, ...book });
+    parsedBooks.then(books => {
+      if (!title) {
+        // no title provided
+        return res.status(400).json({ message: "Title parameter is required" });
+      } else {
+        // search for books by the given title
+        const results = [];
+        for (const [isbn, book] of Object.entries(books)) {
+          console.log(book.title, title);
+          if (book.title.toLowerCase() === title.toLowerCase()) {
+            results.push({ isbn, ...book });
+          }
+        }
+        console.log(results);
+        if (results.length > 0) {
+          return res.status(200).json(JSON.stringify(results, null, 2));
+        } else {
+          return res.status(404).json({ message: "No books found by the specified author" });
         }
       }
-      console.log(results);
-      if (results.length > 0) {
-        return res.status(200).json(JSON.stringify(results, null, 2));
-      } else {
-        return res.status(404).json({ message: "No books found by the specified author" });
-      }
-    }
+    }).catch(err => {
+      console.error("Error parsing books:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
+    });
   } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
