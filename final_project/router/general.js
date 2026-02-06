@@ -6,7 +6,7 @@ const public_users = express.Router();
 
 const parsedBooks = new Promise((resolve, reject) => {
   try {
-    resolve(JSON.parse(JSON.stringify(books)));
+    resolve(books);
   } catch (err) {
     reject(err);
   }
@@ -34,7 +34,7 @@ public_users.post("/register", (req, res) => {
 public_users.get('/', async function (req, res) {
   try {
     parsedBooks.then(books => {
-      return res.status(200).json(JSON.stringify(books, null, 2));
+      return res.status(200).json(books);
     }).catch(err => {
       console.error("Error parsing books:", err);
       return res.status(500).json({ message: "Internal Server Error" });
@@ -54,7 +54,7 @@ public_users.get('/isbn/:isbn', function (req, res) {
         return res.status(400).json({ message: "ISBN parameter is required" });
       } else if (books[isbn]) {
         // ISBN found among books
-        return res.status(200).json(JSON.stringify(books[isbn], null, 2));
+        return res.status(200).json(books[isbn]);
       } else {
         return res.status(404).json({ message: "Book not found" });
       }
@@ -87,7 +87,7 @@ public_users.get('/author/:author', function (req, res) {
         }
         console.log(results);
         if (results.length > 0) {
-          return res.status(200).json(JSON.stringify(results, null, 2));
+          return res.status(200).json(results);
         } else {
           return res.status(404).json({ message: "No books found by the specified author" });
         }
@@ -121,7 +121,7 @@ public_users.get('/title/:title', function (req, res) {
         }
         console.log(results);
         if (results.length > 0) {
-          return res.status(200).json(JSON.stringify(results, null, 2));
+          return res.status(200).json(results);
         } else {
           return res.status(404).json({ message: "No books found by the specified author" });
         }
@@ -144,7 +144,7 @@ public_users.get('/review/:isbn', function (req, res) {
       return res.status(400).json({ message: "ISBN parameter is required" });
     } else if (books[isbn]) {
       // ISBN found among books
-      return res.status(200).json(JSON.stringify(books[isbn].reviews, null, 2));
+      return res.status(200).json(books[isbn].reviews);
     } else {
       return res.status(404).json({ message: "Book not found" });
     }
